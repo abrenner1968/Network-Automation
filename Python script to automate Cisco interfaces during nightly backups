@@ -1,0 +1,135 @@
+First, make sure to install the paramiko library:
+pip install paramiko
+
+import paramiko
+import time
+
+def shutdown_interface(router_ip, username, password, interface_name):
+    try:
+        # Connect to the router
+        ssh_client = paramiko.SSHClient()
+        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_client.connect(router_ip, username=username, password=password, timeout=10)
+
+        # Send commands to shut down the interface
+        ssh_shell = ssh_client.invoke_shell()
+        ssh_shell.send("enable\n")
+        time.sleep(1)
+        ssh_shell.send("configure terminal\n")
+        time.sleep(1)
+        ssh_shell.send(f"interface {interface_name}\n")
+        time.sleep(1)
+        ssh_shell.send("shutdown\n")
+        time.sleep(1)
+        ssh_shell.send("exit\n")
+        time.sleep(1)
+        ssh_shell.send("exit\n")
+        time.sleep(1)
+
+        # Close the SSH connection
+        ssh_client.close()
+
+        print(f"Interface {interface_name} shut down successfully.")
+    except Exception as e:
+        print(f"Failed to shut down interface {interface_name}: {e}")
+
+def main():
+    # Cisco router details
+    router_ip = "router_ip_address"
+    username = "your_username"
+    password = "your_password"
+    
+    # Interface details
+    interface_name = "interface_name"  # e.g., GigabitEthernet0/1
+
+    # Schedule shutdown at 1 am
+    current_time = time.localtime()
+    if current_time.tm_hour == 1 and current_time.tm_min == 0:
+        shutdown_interface(router_ip, username, password, interface_name)
+
+if __name__ == "__main__":
+    main()
+
+
+Make sure to replace "router_ip_address", "your_username", "your_password", and "interface_name" with your actual router IP address, SSH username, password, and the interface you want to shut down, respectively.
+
+This script will attempt to connect to the router via SSH and execute the necessary commands to shut down the specified interface at 1 am. You can schedule this script to run daily using a cron job or a similar scheduling mechanism.
+
+Open your terminal.
+
+Type the following command and press Enter:
+
+Copy code
+crontab -e
+If prompted, choose an editor (such as nano or vim).
+
+Add a new line at the end of the file with the following format:
+
+ruby
+Copy code
+* 1 * * * /usr/bin/python3 /path/to/your_script.py
+Replace /path/to/your_script.py with the actual path to your Python script.
+
+In this example, * 1 * * * means that the script will run every day at 1:00 AM. You can adjust the time according to your needs by modifying the values. The fields in the cron tab entry represent minute, hour, day of the month, month, and day of the week, respectively.
+
+Save the file and exit the editor.
+
+After adding this entry, your Python script will run daily at the specified time. Make sure that the Python interpreter path (/usr/bin/python3 in this example) is correct for your system. You can find the correct path by running which python3 in your terminal.
+
+
+
+
+Next, let's turn up the interface on the router that connects with the DR
+
+import paramiko
+import time
+
+def enable_interface(router_ip, username, password, interface_name):
+    try:
+        # Connect to the router
+        ssh_client = paramiko.SSHClient()
+        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_client.connect(router_ip, username=username, password=password, timeout=10)
+
+        # Send commands to enable the interface
+        ssh_shell = ssh_client.invoke_shell()
+        ssh_shell.send("enable\n")
+        time.sleep(1)
+        ssh_shell.send("configure terminal\n")
+        time.sleep(1)
+        ssh_shell.send(f"interface {interface_name}\n")
+        time.sleep(1)
+        ssh_shell.send("no shutdown\n")
+        time.sleep(1)
+        ssh_shell.send("exit\n")
+        time.sleep(1)
+        ssh_shell.send("exit\n")
+        time.sleep(1)
+
+        # Close the SSH connection
+        ssh_client.close()
+
+        print(f"Interface {interface_name} enabled successfully.")
+    except Exception as e:
+        print(f"Failed to enable interface {interface_name}: {e}")
+
+def main():
+    # Cisco router details
+    router_ip = "router_ip_address"
+    username = "your_username"
+    password = "your_password"
+    
+    # Interface details
+    interface_name = "interface_name"  # e.g., GigabitEthernet0/1
+
+    # Schedule interface enable at 1 am
+    current_time = time.localtime()
+    if current_time.tm_hour == 1 and current_time.tm_min == 0:
+        enable_interface(router_ip, username, password, interface_name)
+        time.sleep(1800)  # Wait for 30 minutes
+        disable_interface(router_ip, username, password, interface_name)
+
+if __name__ == "__main__":
+    main()
+
+Again, make sure to use a cron job to schedule this script on a daily basis
