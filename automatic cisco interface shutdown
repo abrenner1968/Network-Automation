@@ -1,0 +1,18 @@
+#this file will be loaded on the router for automating interface shut downs for the purpose of ransomware protection. Keep in mind, this is not the safest method
+configure terminal
+event manager applet shutdown_interface
+ event timer cron name shutdown_time cron-entry "0 1 * * *"
+ action 1.0 cli command "enable"
+ action 2.0 cli command "configure terminal"
+ action 3.0 cli command "interface GigabitEthernet0/1"
+ action 4.0 cli command "shutdown"
+ action 5.0 cli command "exit"
+ action 6.0 cli command "exit"
+event manager applet activate_interface
+ event timer cron name activate_time cron-entry "30 1 * * *"
+ action 1.0 cli command "enable"
+ action 2.0 cli command "configure terminal"
+ action 3.0 cli command "interface GigabitEthernet0/1"
+ action 4.0 cli command "no shutdown"
+ action 5.0 cli command "exit"
+ action 6.0 cli command "exit"
