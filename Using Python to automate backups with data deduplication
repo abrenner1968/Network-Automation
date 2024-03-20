@@ -1,0 +1,42 @@
+import os
+import shutil
+import hashlib
+
+def file_hash(file_path, block_size=65536):
+    # Calculate hash of a file
+    hasher = hashlib.sha256()
+    with open(file_path, 'rb') as file:
+        buffer = file.read(block_size)
+        while len(buffer) > 0:
+            hasher.update(buffer)
+            buffer = file.read(block_size)
+    return hasher.hexdigest()
+
+def backup_with_deduplication(source_dir, destination_dir):
+    # Dictionary to store hash values and corresponding file paths
+    hash_dict = {}
+
+    # Walk through the source directory
+    for root, _, files in os.walk(source_dir):
+        for filename in files:
+            file_path = os.path.join(root, filename)
+            file_hash_value = file_hash(file_path)
+
+            # Check if the hash value already exists in the dictionary
+            if file_hash_value in hash_dict:
+                # If file already exists, skip copying
+                print(f"Skipping {file_path} as it is a duplicate.")
+            else:
+                # Otherwise, copy the file to the destination directory
+                destination_path = os.path.join(destination_dir, filename)
+                shutil.copy2(file_path, destination_path)
+                print(f"Copied {file_path} to {destination_path}")
+
+                # Update hash dictionary
+                hash_dict[file_hash_value] = destination_path
+
+# Example usage:
+source_directory = "/path/to/source_directory"
+destination_directory = "/path/to/backup_directory"
+
+backup_with_deduplication(source_directory, destination_directory)
