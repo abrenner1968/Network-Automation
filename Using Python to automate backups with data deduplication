@@ -1,3 +1,5 @@
+Use whichever editing software you are comfortable with. My preferred is Notepad++. Save the file as something such as backup_with_deduplication.py
+
 import os
 import shutil
 import hashlib
@@ -37,6 +39,34 @@ def backup_with_deduplication(source_dir, destination_dir):
 
 # Example usage:
 source_directory = "/path/to/source_directory"
-destination_directory = "/path/to/backup_directory"
+destination_directory = "/backup_with_deduplication.py"
 
-backup_with_deduplication(source_directory, destination_directory)
+backup_with_deduplication(/blob_storage/main, 10.0.1.5/blob_storage/dr)
+
+Be sure to add the following cron job to activate the python file above at the same time nightly. In my case, I did this at 1am, the same time I have the router interface that services the end users shut down. Save it as something like forcebackupnightly.py
+
+import schedule
+import time
+import subprocess
+
+def activate_script(script_path):
+    try:
+        # Run the script using subprocess
+        subprocess.run(["python", script_path])
+        print(f"Activated {\}")
+    except Exception as e:
+        print(f"Failed to activate {\}: {e}")
+
+def daily_activation():
+    script_to_activate = "/backup_with_deduplication.py"
+    activate_script(script_to_activate)
+
+# Schedule the activation to occur daily at a specific time
+schedule.every().day.at("01:00").do(daily_activation)
+
+# Main loop to keep the script running
+while True:
+    schedule.run_pending()
+    time.sleep(60)  # Check every minute if there's a scheduled task to run
+
+
