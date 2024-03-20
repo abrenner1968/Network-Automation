@@ -1,0 +1,58 @@
+Here's a Python script that performs backup from AWS S3 to Azure Blob Storage with simple deduplication:
+
+import subprocess
+import os
+import hashlib
+
+def calculate_hash(file_path):
+    """Calculate SHA256 hash of a file."""
+    hasher = hashlib.sha256()
+    with open(file_path, 'rb') as f:
+        while True:
+            chunk = f.read(65536)  # 64KB chunk size
+            if not chunk:
+                break
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+def backup_aws_to_azure(aws_bucket, azure_container):
+    try:
+        # Sync data from AWS S3 to a local directory
+        subprocess.run(["aws", "s3", "sync", f"s3://{aws_bucket}", "./backup_data"])
+
+        # List files in the local directory
+        files = os.listdir("./backup_data")
+
+        # Deduplicate files and upload to Azure Blob Storage
+        uploaded_files = set()
+        for file in files:
+            file_path = os.path.join("./backup_data", file)
+            file_hash = calculate_hash(file_path)
+            if file_hash not in uploaded_files:
+                # Upload the file to Azure Blob Storage
+                subprocess.run(["az", "storage", "blob", "upload", "--account-name", "your_azure_storage_account", "--container-name", azure_container, "--file", file_path, "--name", file])
+                uploaded_files.add(file_hash)
+                print(f"Uploaded {file} to Azure Blob Storage")
+            else:
+                print(f"Skipped {file} (duplicate)")
+
+        print("Backup completed successfully.")
+    except Exception as e:
+        print(f"Backup failed: {e}")
+
+# Example usage:
+aws_bucket = "your_aws_bucket"
+azure_container = "your_azure_container"
+
+backup_aws_to_azure(aws_bucket, azure_container)
+
+Script Explanation:
+The script first syncs data from the AWS S3 bucket to a local directory using aws s3 sync command.
+It then calculates the SHA256 hash of each file to identify duplicates.
+Files with unique hashes are uploaded to Azure Blob Storage using az storage blob upload command.
+Deduplication is performed by maintaining a set of hashes of uploaded files and skipping files with duplicate hashes.
+Replace "your_aws_bucket" with the name of your AWS S3 bucket and "your_azure_container" with the name of your Azure Blob Storage container.
+Notes:
+This script provides basic deduplication by comparing file hashes. It assumes that files with identical hashes are identical.
+Ensure that the machine running the script has appropriate permissions to access both AWS and Azure resources.
+Adjust the script according to your specific requirements and environment configurations.
